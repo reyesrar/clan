@@ -1,4 +1,5 @@
 #include "node.h"
+#include "../models/ClanMember.h"
 enum Order{PREORDER, INORDER, POSTORDER};
 
 template<class T>
@@ -8,9 +9,9 @@ class Tree{
         Node<T>* insert(Node<T>*, T);
         Node<T>* remove(Node<T>*, T);
         Node<T>* leftmost(Node<T>*);
-        bool searchPreOrder(Node<T>*, T);
-        bool searchInOrder(Node<T>*, T);
-        bool searchPostOrder(Node<T>*, T);
+        bool searchPreOrder(Node<T>*, int);
+        bool searchInOrder(Node<T>*, int);
+        bool searchPostOrder(Node<T>*, int);
         int height(Node<T>*);
         int getBalanceFactor(Node<T>*);
         Node<T>* rotateRight(Node<T>*);
@@ -20,7 +21,7 @@ class Tree{
         Tree(Node<T>*);
         void insert(T);
         void remove(T);
-        bool search(T, int);
+        bool search(int, int);
         void update(T, T);
 };
 
@@ -87,59 +88,65 @@ Node<T>* Tree<T>::leftmost(Node<T>* node) {
 }
 
 template<class T>
-bool Tree<T>::search(T data, int order){
+bool Tree<T>::search(int id, int order) {
     bool found;
     switch(order) {
         case PREORDER:
-            found = searchPreOrder(this->root, data);
+            found = searchPreOrder(this->root, id);
             break;
         case INORDER:
-            found = searchInOrder(this->root, data);
+            found = searchInOrder(this->root, id);
             break;
         case POSTORDER:
-            found = searchPostOrder(this->root, data);
+            found = searchPostOrder(this->root, id);
             break;
         default:
             found = false;
     }
     if (!found) {
-        cout << "Nodo '" << data << "' no existe en el arbol" << endl;
+        cout << "Nodo con ID '" << id << "' no existe en el arbol" << endl;
     }
     return found;
 }
 
 template<class T>
-bool Tree<T>::searchPreOrder(Node<T>* node, T data) {
+bool Tree<T>::searchPreOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
-    cout << "Recorriendo nodo '" << node->getData() << "'" << endl;
-    if (node->getData() == data) {
-        cout << "Nodo '"<< data << "' encontrado" << endl;
+    cout << "Recorriendo nodo con ID '" << node->getData().id 
+         << "', Nombre: '" << node->getData().name 
+         << "', Apellido: '" << node->getData().lastName << "'" << endl;
+    if (node->getData().id == id) {
+        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
-    if (searchPreOrder(node->getLeft(), data)) return true;
-    return searchPreOrder(node->getRight(), data);
+    if (searchPreOrder(node->getLeft(), id)) return true;
+    return searchPreOrder(node->getRight(), id);
 }
 
 template<class T>
-bool Tree<T>::searchInOrder(Node<T>* node, T data) {
+bool Tree<T>::searchInOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
-    if (searchInOrder(node->getLeft(), data)) return true;
-    cout << "Recorriendo nodo '" << node->getData() << "'" << endl;
-    if (node->getData() == data) {
-        cout << "Nodo '"<< data << "' encontrado" << endl;
+    if (searchInOrder(node->getLeft(), id)) return true;
+    cout << "Recorriendo nodo con ID '" << node->getData().id 
+         << "', Nombre: '" << node->getData().name 
+         << "', Apellido: '" << node->getData().lastName << "'" << endl;
+    if (node->getData().id == id) {
+        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
-    return searchInOrder(node->getRight(), data);
+    return searchInOrder(node->getRight(), id);
 }
 
 template<class T>
-bool Tree<T>::searchPostOrder(Node<T>* node, T data) {
+bool Tree<T>::searchPostOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
-    if (searchPostOrder(node->getLeft(), data)) return true;
-    if (searchPostOrder(node->getRight(), data)) return true;
-    cout << "Recorriendo nodo '" << node->getData() << "'" << endl;
-    if (node->getData() == data) {
-        cout << "Nodo '"<< data << "' encontrado" << endl;
+    if (searchPostOrder(node->getLeft(), id)) return true;
+    if (searchPostOrder(node->getRight(), id)) return true;
+    cout << "Recorriendo nodo con ID '" << node->getData().id 
+         << "', Nombre: '" << node->getData().name 
+         << "', Apellido: '" << node->getData().lastName << "'" << endl;
+    if (node->getData().id == id) {
+        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
     return false;

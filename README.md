@@ -3,7 +3,7 @@
 Este proyecto está diseñado para gestionar los registros históricos de un clan, digitalizarlos y automatizar la selección de sucesores para el líder del clan.
 
 ## Funcionalidades
-
+1. Convertir datos de un archivo CSV en nodos de un arbol.
 
 ## Estructura de Carpetas
 - `bin/`: Contiene el ejecutable y los archivos de datos.
