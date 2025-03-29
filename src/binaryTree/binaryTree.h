@@ -17,12 +17,16 @@ class Tree{
         Node<T>* rotateRight(Node<T>*);
         Node<T>* rotateLeft(Node<T>*);
         Node<T>* balanceTree(Node<T>*);
+        void successionLinePreOrder(Node<T>*);
+        void successionLineInOrder(Node<T>*);
+        void successionLinePostOrder(Node<T>*);
     public:
         Tree(Node<T>*);
         void insert(T);
         void remove(T);
         bool search(int, int);
         void update(T, T);
+        void printSuccessionLine(int);
 };
 
 using namespace std;
@@ -221,3 +225,59 @@ Node<T>* Tree<T>::balanceTree(Node<T>* node) {
     return node;
 }
 
+template<class T>
+void Tree<T>::printSuccessionLine(int order) {
+    switch (order) {
+        case PREORDER:
+            successionLinePreOrder(this->root);
+            break;
+        case INORDER:
+            successionLineInOrder(this->root);
+            break;
+        case POSTORDER:
+            successionLinePostOrder(this->root);
+            break;
+        default:
+            successionLineInOrder(this->root);
+            break;
+    }
+}
+
+template<class T>
+void Tree<T>::successionLinePreOrder(Node<T>* node) {
+    if (node == nullptr) return;
+    if (!node->getData().isDead) {
+        cout << "ID: " << node->getData().id 
+             << ", Nombre: " << node->getData().name 
+             << ", Apellido: " << node->getData().lastName 
+             << ", Edad: " << node->getData().age << endl;
+    }
+    successionLinePreOrder(node->getLeft());
+    successionLinePreOrder(node->getRight());
+}
+
+template<class T>
+void Tree<T>::successionLineInOrder(Node<T>* node) {
+    if (node == nullptr) return;
+    successionLineInOrder(node->getLeft());
+    if (!node->getData().isDead) {
+        cout << "ID: " << node->getData().id 
+             << ", Nombre: " << node->getData().name 
+             << ", Apellido: " << node->getData().lastName 
+             << ", Edad: " << node->getData().age << endl;
+    }
+    successionLineInOrder(node->getRight());
+}
+
+template<class T>
+void Tree<T>::successionLinePostOrder(Node<T>* node) {
+    if (node == nullptr) return;
+    successionLinePostOrder(node->getLeft());
+    successionLinePostOrder(node->getRight());
+    if (!node->getData().isDead) {
+        cout << "ID: " << node->getData().id 
+             << ", Nombre: " << node->getData().name 
+             << ", Apellido: " << node->getData().lastName 
+             << ", Edad: " << node->getData().age << endl;
+    }
+}

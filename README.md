@@ -4,6 +4,7 @@ Este proyecto está diseñado para gestionar los registros históricos de un cla
 
 ## Funcionalidades
 1. Convertir datos de un archivo CSV en nodos de un arbol.
+2. Imprimir la linea de sucesion actual (unicamente a los vivos).
 
 ## Estructura de Carpetas
 - `bin/`: Contiene el ejecutable y los archivos de datos.

@@ -11,6 +11,13 @@ int main() {
     Tree<ClanMember> clanTree(nullptr);
     loadClanData(clanTree, "bin/data.csv");
 
+    int order;
+    cout << "Seleccionar recorrido (0: PREORDER, 1: INORDER, 2: POSTORDER): ";
+    cin >> order;
+
+    cout << "Linea de Sucesion Actual:" << endl;
+    clanTree.printSuccessionLine(order);
+
     return 0;
 }
 
