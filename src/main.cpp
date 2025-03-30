@@ -11,14 +11,35 @@ int main() {
     Tree<ClanMember> clanTree(nullptr);
     loadClanData(clanTree, "bin/data.csv");
 
-    clanTree.assignNewLeader();
+    int choice;
+    do {
+        cout << "\n--- Menu ---\n";
+        cout << "1. Mostrar linea de sucesion\n";
+        cout << "2. Modificar datos de un miembro\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione una opcion: ";
+        cin >> choice;
 
-    int order;
-    cout << "Seleccionar recorrido (0: PREORDER, 1: INORDER, 2: POSTORDER): ";
-    cin >> order;
-
-    cout << "Linea de Sucesion Actual:" << endl;
-    clanTree.printSuccessionLine(order);
+        switch (choice) {
+            case 1: {
+                int order;
+                cout << "Seleccionar recorrido (0: PREORDER, 1: INORDER, 2: POSTORDER): ";
+                cin >> order;
+                cout << "Linea de Sucesion Actual:" << endl;
+                clanTree.printSuccessionLine(order);
+                break;
+            }
+            case 2:
+                clanTree.modifyClanMember("bin/data.csv");
+                clanTree.saveTreeToFile("bin/data.csv");
+                break;
+            case 0:
+                cout << "Saliendo del programa..." << endl;
+                break;
+            default:
+                cout << "Opcion invalida. Intente de nuevo." << endl;
+        }
+    } while (choice != 0);
 
     return 0;
 }
@@ -53,9 +74,9 @@ void loadClanData(Tree<ClanMember>& tree, const string& filePath) {
             gender[0], 
             stoi(age), 
             stoi(idFather), 
-            stoi(isDead) == 1, 
-            stoi(wasChief) == 1, 
-            stoi(isChief) == 1
+            stoi(isDead), 
+            stoi(wasChief), 
+            stoi(isChief)
         );
 
         tree.insert(member);

@@ -5,7 +5,8 @@ Este proyecto está diseñado para gestionar los registros históricos de un cla
 ## Funcionalidades
 1. Convertir datos de un archivo CSV en nodos de un arbol.
 2. Imprimir la linea de sucesion actual (unicamente a los vivos).
-3. Asignacion de nuevo lider en caso de muerte o vejez.
+3. Asignacion de nuevo lider en caso de muerte o vejez (Necesita Arreglo).
+4. Interfaz para el usuario.
 
 ## Estructura de Carpetas
 - `bin/`: Contiene el ejecutable y los archivos de datos.
@@ -16,4 +17,4 @@ Este proyecto está diseñado para gestionar los registros históricos de un cla
 - Buenas prácticas de commits según las pautas.
 
 ## Observaciones
-- Asignacion de nuevo lider se comprobara mas a fondo cuando el programa permanezca en ejecucion.
+- La asignacion de un nuevo lider no esta cumpliendose automaticamente al morir o tener una edad de 70 el lider actual.

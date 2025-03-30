@@ -21,7 +21,9 @@ class Tree{
         void successionLinePreOrder(Node<T>*);
         void successionLineInOrder(Node<T>*);
         void successionLinePostOrder(Node<T>*);
-        T findNewLeader(Node<T>*);
+        void saveToFile(Node<T>*, ofstream&);
+        T findMember(Node<T>*);
+        T findMember(Node<T>*, int);
         void updateLeaderInFile(const T&, const T&);
     public:
         Tree(Node<T>*);
@@ -31,6 +33,8 @@ class Tree{
         void update(T, T);
         void printSuccessionLine(int);
         void assignNewLeader();
+        void modifyClanMember(const string&);
+        void saveTreeToFile(const string&);
 };
 
 using namespace std;
@@ -120,11 +124,7 @@ bool Tree<T>::search(int id, int order) {
 template<class T>
 bool Tree<T>::searchPreOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
-    cout << "Recorriendo nodo con ID '" << node->getData().id 
-         << "', Nombre: '" << node->getData().name 
-         << "', Apellido: '" << node->getData().lastName << "'" << endl;
     if (node->getData().id == id) {
-        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
     if (searchPreOrder(node->getLeft(), id)) return true;
@@ -135,11 +135,7 @@ template<class T>
 bool Tree<T>::searchInOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
     if (searchInOrder(node->getLeft(), id)) return true;
-    cout << "Recorriendo nodo con ID '" << node->getData().id 
-         << "', Nombre: '" << node->getData().name 
-         << "', Apellido: '" << node->getData().lastName << "'" << endl;
     if (node->getData().id == id) {
-        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
     return searchInOrder(node->getRight(), id);
@@ -150,11 +146,7 @@ bool Tree<T>::searchPostOrder(Node<T>* node, int id) {
     if (node == nullptr) return false;
     if (searchPostOrder(node->getLeft(), id)) return true;
     if (searchPostOrder(node->getRight(), id)) return true;
-    cout << "Recorriendo nodo con ID '" << node->getData().id 
-         << "', Nombre: '" << node->getData().name 
-         << "', Apellido: '" << node->getData().lastName << "'" << endl;
     if (node->getData().id == id) {
-        cout << "Nodo con ID '" << id << "' encontrado" << endl;
         return true;
     }
     return false;
@@ -250,12 +242,12 @@ void Tree<T>::printSuccessionLine(int order) {
 template<class T>
 void Tree<T>::successionLinePreOrder(Node<T>* node) {
     if (node == nullptr) return;
-    if (!node->getData().isDead) {
+    if (node->getData().isDead == 0) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
              << ", Edad: " << node->getData().age;
-        if (node->getData().isChief) {
+        if (node->getData().isChief == 1) {
             cout << " (Lider Actual)";
         }
         cout << endl;
@@ -268,12 +260,12 @@ template<class T>
 void Tree<T>::successionLineInOrder(Node<T>* node) {
     if (node == nullptr) return;
     successionLineInOrder(node->getLeft());
-    if (!node->getData().isDead) {
+    if (node->getData().isDead == 0) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
              << ", Edad: " << node->getData().age;
-        if (node->getData().isChief) {
+        if (node->getData().isChief == 1) {
             cout << " (Lider Actual)";
         }
         cout << endl;
@@ -286,12 +278,12 @@ void Tree<T>::successionLinePostOrder(Node<T>* node) {
     if (node == nullptr) return;
     successionLinePostOrder(node->getLeft());
     successionLinePostOrder(node->getRight());
-    if (!node->getData().isDead) {
+    if (node->getData().isDead == 0) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
              << ", Edad: " << node->getData().age;
-        if (node->getData().isChief) {
+        if (node->getData().isChief == 1) {
             cout << " (Lider Actual)";
         }
         cout << endl;
@@ -304,7 +296,7 @@ void Tree<T>::assignNewLeader() {
 
     T currentLeader = this->root->getData();
     if (currentLeader.isDead || currentLeader.age >= 70) {
-        T newLeader = findNewLeader(this->root);
+        T newLeader = findMember(this->root);
         if (newLeader.id != 0) {
             cout << "Nuevo Lider Asignado: ID " << newLeader.id 
                  << ", Nombre: " << newLeader.name 
@@ -345,11 +337,11 @@ void Tree<T>::updateLeaderInFile(const T& oldLeader, const T& newLeader) {
         if (stoi(id) == oldLeader.id) {
             line = to_string(oldLeader.id) + ", " + oldLeader.name + ", " + oldLeader.lastName + ", " +
                    oldLeader.gender + ", " + to_string(oldLeader.age) + ", " + to_string(oldLeader.idFather) + ", " +
-                   to_string(oldLeader.isDead ? 1 : 0) + ", " + to_string(oldLeader.wasChief ? 1 : 0) + ", 0";
+                   to_string(oldLeader.isDead) + ", " + to_string(oldLeader.wasChief) + ", 0";
         } else if (stoi(id) == newLeader.id) {
             line = to_string(newLeader.id) + ", " + newLeader.name + ", " + newLeader.lastName + ", " +
                    newLeader.gender + ", " + to_string(newLeader.age) + ", " + to_string(newLeader.idFather) + ", " +
-                   to_string(newLeader.isDead ? 1 : 0) + ", " + to_string(newLeader.wasChief ? 1 : 0) + ", 1";
+                   to_string(newLeader.isDead) + ", " + to_string(newLeader.wasChief) + ", 1";
         }
 
         updatedContent += line + "\n";
@@ -368,7 +360,7 @@ void Tree<T>::updateLeaderInFile(const T& oldLeader, const T& newLeader) {
 }
 
 template<class T>
-T Tree<T>::findNewLeader(Node<T>* node) {
+T Tree<T>::findMember(Node<T>* node) {
     if (node == nullptr) return T();
 
     Node<T>* left = node->getLeft();
@@ -381,10 +373,10 @@ T Tree<T>::findNewLeader(Node<T>* node) {
         return right->getData();
     }
 
-    T leftResult = findNewLeader(left);
+    T leftResult = findMember(left);
     if (leftResult.id != 0) return leftResult;
 
-    T rightResult = findNewLeader(right);
+    T rightResult = findMember(right);
     if (rightResult.id != 0) return rightResult;
 
     if (left != nullptr && !left->getData().isDead && left->getData().gender == 'M') {
@@ -395,5 +387,218 @@ T Tree<T>::findNewLeader(Node<T>* node) {
     }
 
     return T();
+}
+
+template<class T>
+T Tree<T>::findMember(Node<T>* node, int id) {
+    if (node == nullptr) return T();
+
+    if (node->getData().id == id) {
+        return node->getData();
+    }
+
+    T leftResult = findMember(node->getLeft(), id);
+    if (leftResult.id != 0) return leftResult;
+
+    return findMember(node->getRight(), id);
+}
+
+template<class T>
+void Tree<T>::modifyClanMember(const string& filePath) {
+    int id;
+    cout << "Ingrese el ID del miembro a modificar: ";
+    cin >> id;
+
+    if (!search(id, INORDER)) {
+        cout << "Miembro no encontrado." << endl;
+        return;
+    }
+
+    T oldMember = findMember(this->root, id);
+    if (oldMember.id == 0) {
+        cout << "Error: No se pudo encontrar el miembro con ID " << id << "." << endl;
+        return;
+    }
+
+    T newMember = oldMember;
+
+    auto displayMemberInfo = [](const T& member) {
+        cout << "\nInformacion del miembro actual:\n";
+        cout << "ID: " << member.id << "\n"
+             << "Nombre: " << member.name << "\n"
+             << "Apellido: " << member.lastName << "\n"
+             << "Genero: " << member.gender << "\n"
+             << "Edad: " << member.age << "\n"
+             << "ID Padre: " << member.idFather << "\n"
+             << "Esta muerto: " << (member.isDead ? "Si" : "No") << "\n"
+             << "Fue lider: " << (member.wasChief ? "Si" : "No") << "\n"
+             << "Es lider actual: " << (member.isChief ? "Si" : "No") << "\n";
+    };
+
+    displayMemberInfo(newMember);
+
+    int choice;
+    do {
+        cout << "\n--- Modificar Miembro ---\n";
+        cout << "1. Nombre\n";
+        cout << "2. Apellido\n";
+        cout << "3. Genero\n";
+        cout << "4. Edad\n";
+        cout << "5. Esta muerto\n";
+        cout << "6. Fue lider\n";
+        cout << "7. Es lider actual\n";
+        cout << "0. Guardar y salir\n";
+        cout << "Seleccione una opcion: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Ingrese nuevo nombre: ";
+                cin >> newMember.name;
+                displayMemberInfo(newMember);
+                break;
+            case 2:
+                cout << "Ingrese nuevo apellido: ";
+                cin >> newMember.lastName;
+                displayMemberInfo(newMember);
+                break;
+            case 3:
+                cout << "Ingrese nuevo genero (H/M): ";
+                cin >> newMember.gender;
+                displayMemberInfo(newMember);
+                break;
+            case 4:
+                cout << "Ingrese nueva edad: ";
+                cin >> newMember.age;
+                if (newMember.age >= 70 && oldMember.isChief == 1) {
+                    char confirm;
+                    cout << "El miembro es el lider actual y su edad sera mayor o igual a 70. Desea remover su liderazgo y asignar un nuevo lider? (Y/N): ";
+                    cin >> confirm;
+                    if (confirm == 'Y' || confirm == 'y') {
+                        newMember.isChief = 0;
+                        update(oldMember, newMember);
+                        updateLeaderInFile(oldMember, newMember);
+                        assignNewLeader();
+                        cout << "El lider actual ha sido removido debido a su edad y se ha asignado un nuevo lider.\n";
+                    } else if (confirm == 'N' || confirm == 'n') {
+                        cout << "Operacion cancelada.\n";
+                        newMember.age = oldMember.age;
+                    } else {
+                        cout << "Entrada invalida. Operacion cancelada.\n";
+                        newMember.age = oldMember.age;
+                    }
+                }
+                displayMemberInfo(newMember);
+                break;
+            case 5:
+                if (oldMember.isChief) {
+                    char confirm;
+                    cout << "El miembro es el lider actual. Desea marcarlo como muerto y asignar un nuevo lider? (Y/N): ";
+                    cin >> confirm;
+                    if (confirm == 'Y' || confirm == 'y') {
+                        newMember.isDead = 1;
+                        newMember.isChief = 0;
+                        update(oldMember, newMember);
+                        updateLeaderInFile(oldMember, newMember);
+                        assignNewLeader();
+                        cout << "El lider actual ha sido marcado como muerto y se ha asignado un nuevo lider.\n";
+                    } else if (confirm == 'N' || confirm == 'n') {
+                        cout << "Operacion cancelada.\n";
+                    } else {
+                        cout << "Entrada invalida. Operacion cancelada.\n";
+                    }
+                } else {
+                    cout << "Esta muerto? (1: Si, 0: No): ";
+                    cin >> newMember.isDead;
+                }
+                displayMemberInfo(newMember);
+                break;
+            case 6:
+                cout << "Fue lider? (1: Si, 0: No): ";
+                cin >> newMember.wasChief;
+                displayMemberInfo(newMember);
+                break;
+            case 7:
+                cout << "Es lider actual? (1: Si, 0: No): ";
+                cin >> newMember.isChief;
+                displayMemberInfo(newMember);
+                break;
+            case 0:
+                cout << "Guardando cambios...\n";
+                break;
+            default:
+                cout << "Opcion invalida. Intente de nuevo.\n";
+        }
+    } while (choice != 0);
+
+    update(oldMember, newMember);
+
+    ifstream file(filePath);
+    if (!file.is_open()) {
+        cerr << "Error abriendo archivo: " << filePath << endl;
+        return;
+    }
+
+    string line, updatedContent;
+    getline(file, line);
+    updatedContent += line + "\n";
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string idStr;
+        getline(ss, idStr, ',');
+
+        if (stoi(idStr) == oldMember.id) {
+            line = to_string(newMember.id) + ", " + newMember.name + ", " + newMember.lastName + ", " +
+                   newMember.gender + ", " + to_string(newMember.age) + ", " + to_string(newMember.idFather) + ", " +
+                   to_string(newMember.isDead) + ", " + to_string(newMember.wasChief) + ", " +
+                   to_string(newMember.isChief);
+        }
+
+        updatedContent += line + "\n";
+    }
+
+    file.close();
+
+    ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        cerr << "Error de escritura: " << filePath << endl;
+        return;
+    }
+
+    outFile << updatedContent;
+    outFile.close();
+
+    cout << "Datos del miembro actualizados correctamente." << endl;
+}
+
+template<class T>
+void Tree<T>::saveToFile(Node<T>* node, ofstream& outFile) {
+    if (node == nullptr) return;
+
+    saveToFile(node->getLeft(), outFile);
+
+    T data = node->getData();
+    outFile << data.id << ", " << data.name << ", " << data.lastName << ", " 
+            << data.gender << ", " << data.age << ", " << data.idFather << ", " 
+            << data.isDead << ", " << data.wasChief << ", " << data.isChief << "\n";
+
+    saveToFile(node->getRight(), outFile);
+}
+
+template<class T>
+void Tree<T>::saveTreeToFile(const string& filePath) {
+    ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        cerr << "Error abriendo archivo para escritura: " << filePath << endl;
+        return;
+    }
+
+    outFile << "id, name, last_name, gender, age, id_father, is_dead, was_chief, is_chief\n";
+
+    saveToFile(this->root, outFile);
+
+    outFile.close();
+    cout << "Datos guardados correctamente en " << filePath << endl;
 }
 
