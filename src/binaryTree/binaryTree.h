@@ -1,5 +1,6 @@
 #include "node.h"
 #include "../models/ClanMember.h"
+#include <fstream>
 enum Order{PREORDER, INORDER, POSTORDER};
 
 template<class T>
@@ -20,6 +21,8 @@ class Tree{
         void successionLinePreOrder(Node<T>*);
         void successionLineInOrder(Node<T>*);
         void successionLinePostOrder(Node<T>*);
+        T findNewLeader(Node<T>*);
+        void updateLeaderInFile(const T&, const T&);
     public:
         Tree(Node<T>*);
         void insert(T);
@@ -27,6 +30,7 @@ class Tree{
         bool search(int, int);
         void update(T, T);
         void printSuccessionLine(int);
+        void assignNewLeader();
 };
 
 using namespace std;
@@ -250,7 +254,11 @@ void Tree<T>::successionLinePreOrder(Node<T>* node) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
-             << ", Edad: " << node->getData().age << endl;
+             << ", Edad: " << node->getData().age;
+        if (node->getData().isChief) {
+            cout << " (Lider Actual)";
+        }
+        cout << endl;
     }
     successionLinePreOrder(node->getLeft());
     successionLinePreOrder(node->getRight());
@@ -264,7 +272,11 @@ void Tree<T>::successionLineInOrder(Node<T>* node) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
-             << ", Edad: " << node->getData().age << endl;
+             << ", Edad: " << node->getData().age;
+        if (node->getData().isChief) {
+            cout << " (Lider Actual)";
+        }
+        cout << endl;
     }
     successionLineInOrder(node->getRight());
 }
@@ -278,6 +290,110 @@ void Tree<T>::successionLinePostOrder(Node<T>* node) {
         cout << "ID: " << node->getData().id 
              << ", Nombre: " << node->getData().name 
              << ", Apellido: " << node->getData().lastName 
-             << ", Edad: " << node->getData().age << endl;
+             << ", Edad: " << node->getData().age;
+        if (node->getData().isChief) {
+            cout << " (Lider Actual)";
+        }
+        cout << endl;
     }
 }
+
+template<class T>
+void Tree<T>::assignNewLeader() {
+    if (this->root == nullptr) return;
+
+    T currentLeader = this->root->getData();
+    if (currentLeader.isDead || currentLeader.age >= 70) {
+        T newLeader = findNewLeader(this->root);
+        if (newLeader.id != 0) {
+            cout << "Nuevo Lider Asignado: ID " << newLeader.id 
+                 << ", Nombre: " << newLeader.name 
+                 << ", Apellido: " << newLeader.lastName << endl;
+
+            currentLeader.isChief = 0;
+            newLeader.isChief = 1;
+
+            update(currentLeader, newLeader);
+            updateLeaderInFile(currentLeader, newLeader);
+        } else {
+            cout << "No se ha encontrado un nuevo lider para asignar." << endl;
+        }
+    } else if (currentLeader.isChief && currentLeader.isDead) {
+        currentLeader.isChief = 0;
+        updateLeaderInFile(currentLeader, currentLeader);
+    }
+}
+
+template<class T>
+void Tree<T>::updateLeaderInFile(const T& oldLeader, const T& newLeader) {
+    const string filePath = "bin/data.csv";
+    ifstream file(filePath);
+    if (!file.is_open()) {
+        cerr << "Error abriendo archivo: " << filePath << endl;
+        return;
+    }
+
+    string line, updatedContent;
+    getline(file, line);
+    updatedContent += line + "\n";
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string id;
+        getline(ss, id, ',');
+
+        if (stoi(id) == oldLeader.id) {
+            line = to_string(oldLeader.id) + ", " + oldLeader.name + ", " + oldLeader.lastName + ", " +
+                   oldLeader.gender + ", " + to_string(oldLeader.age) + ", " + to_string(oldLeader.idFather) + ", " +
+                   to_string(oldLeader.isDead ? 1 : 0) + ", " + to_string(oldLeader.wasChief ? 1 : 0) + ", 0";
+        } else if (stoi(id) == newLeader.id) {
+            line = to_string(newLeader.id) + ", " + newLeader.name + ", " + newLeader.lastName + ", " +
+                   newLeader.gender + ", " + to_string(newLeader.age) + ", " + to_string(newLeader.idFather) + ", " +
+                   to_string(newLeader.isDead ? 1 : 0) + ", " + to_string(newLeader.wasChief ? 1 : 0) + ", 1";
+        }
+
+        updatedContent += line + "\n";
+    }
+
+    file.close();
+
+    ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        cerr << "Error de escritura: " << filePath << endl;
+        return;
+    }
+
+    outFile << updatedContent;
+    outFile.close();
+}
+
+template<class T>
+T Tree<T>::findNewLeader(Node<T>* node) {
+    if (node == nullptr) return T();
+
+    Node<T>* left = node->getLeft();
+    Node<T>* right = node->getRight();
+
+    if (left != nullptr && !left->getData().isDead && left->getData().gender == 'H') {
+        return left->getData();
+    }
+    if (right != nullptr && !right->getData().isDead && right->getData().gender == 'H') {
+        return right->getData();
+    }
+
+    T leftResult = findNewLeader(left);
+    if (leftResult.id != 0) return leftResult;
+
+    T rightResult = findNewLeader(right);
+    if (rightResult.id != 0) return rightResult;
+
+    if (left != nullptr && !left->getData().isDead && left->getData().gender == 'M') {
+        return left->getData();
+    }
+    if (right != nullptr && !right->getData().isDead && right->getData().gender == 'M') {
+        return right->getData();
+    }
+
+    return T();
+}
+

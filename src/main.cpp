@@ -11,6 +11,8 @@ int main() {
     Tree<ClanMember> clanTree(nullptr);
     loadClanData(clanTree, "bin/data.csv");
 
+    clanTree.assignNewLeader();
+
     int order;
     cout << "Seleccionar recorrido (0: PREORDER, 1: INORDER, 2: POSTORDER): ";
     cin >> order;
@@ -51,9 +53,9 @@ void loadClanData(Tree<ClanMember>& tree, const string& filePath) {
             gender[0], 
             stoi(age), 
             stoi(idFather), 
-            stoi(isDead), 
-            stoi(wasChief), 
-            stoi(isChief)
+            stoi(isDead) == 1, 
+            stoi(wasChief) == 1, 
+            stoi(isChief) == 1
         );
 
         tree.insert(member);
