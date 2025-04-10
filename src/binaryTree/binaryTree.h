@@ -26,6 +26,7 @@ class Tree{
         Node<T>* rotateRight(Node<T>*);
         Node<T>* rotateLeft(Node<T>*);
         Node<T>* balanceTree(Node<T>*);
+        T findNewLeader(Node<T>*, const T&);
     public:
         Tree(Node<T>*);
         void insert(T);
@@ -534,4 +535,34 @@ Node<T>* Tree<T>::balanceTree(Node<T>* node) {
     }
 
     return node;
+}
+
+template<class T>
+T Tree<T>::findNewLeader(Node<T>* node, const T& currentLeader) {
+    if (node == nullptr) return T();
+
+    T bestCandidate;
+
+    T leftCandidate = findNewLeader(node->getLeft(), currentLeader);
+
+    if (node->getData().idFather == currentLeader.id && 
+        node->getData().gender == 'H' && 
+        !node->getData().isDead && 
+        node->getData().age < 70) {
+        if (bestCandidate.id == 0 || node->getData().age > bestCandidate.age) {
+            bestCandidate = node->getData();
+        }
+    }
+
+    if (leftCandidate.id != 0 && (bestCandidate.id == 0 || leftCandidate.age > bestCandidate.age)) {
+        bestCandidate = leftCandidate;
+    }
+
+    T rightCandidate = findNewLeader(node->getRight(), currentLeader);
+
+    if (rightCandidate.id != 0 && (bestCandidate.id == 0 || rightCandidate.age > bestCandidate.age)) {
+        bestCandidate = rightCandidate;
+    }
+
+    return bestCandidate;
 }
