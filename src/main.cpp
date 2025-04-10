@@ -31,7 +31,6 @@ int main() {
             }
             case 2:
                 clanTree.modifyClanMember("bin/data.csv");
-                clanTree.saveTreeToFile("bin/data.csv");
                 break;
             case 0:
                 cout << "Saliendo del programa..." << endl;

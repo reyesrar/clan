@@ -1,8 +1,8 @@
-id, name  , last_name, gender, age, id_father, is_dead, was_chief, is_chief
- 1, Shinzo, Takahashi, H     ,  68,         0,       0,         1,        1
- 2, Haruto, Takahashi, H     ,  40,         1,       0,         0,        0
- 3, Akira , Takahashi, H     ,  38,         1,       0,         0,        0
- 4, Yui   , Takahashi, M     ,  20,         2,       0,         0,        0
- 5, Ren   , Takahashi, H     ,  15,         2,       0,         0,        0
- 6, Sora  , Takahashi, H     ,  12,         3,       0,         0,        0
- 7, Hana  , Takahashi, M     ,  10,         3,       0,         0,        0
+id, name, last_name, gender, age, id_father, is_dead, was_chief, is_chief
+1,Shinzo,Takahashi,H,68,0,0,0,1
+2,Haruto,Takahashi,H,40,1,0,0,0
+3,Akira,Takahashi,H,38,1,0,0,0
+4,Yui,Takahashi,M,20,2,0,0,0
+5,Ren,Takahashi,H,15,2,0,0,0
+6,Sora,Takahashi,H,12,3,0,0,0
+7,Hana,Takahashi,M,10,3,0,0,0

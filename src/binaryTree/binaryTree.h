@@ -1,6 +1,7 @@
 #include "node.h"
 #include "../models/ClanMember.h"
 #include <fstream>
+#include <sstream>
 enum Order{PREORDER, INORDER, POSTORDER};
 
 template<class T>
@@ -13,18 +14,21 @@ class Tree{
         bool searchPreOrder(Node<T>*, int);
         bool searchInOrder(Node<T>*, int);
         bool searchPostOrder(Node<T>*, int);
+        void successionLinePreOrder(Node<T>*);
+        void successionLineInOrder(Node<T>*);
+        void successionLinePostOrder(Node<T>*);
+        T findMember(Node<T>*);
+        T findMember(Node<T>*, int);
+        T findNewLeader(Node<T>*, const T&);
+        T findSibling(Node<T>*, const T&);
+        T findAncestorWithTwoChildren(Node<T>*, const T&);
+        void updateFile(const string&, const T&);
+        void saveNode(Node<T>*, ofstream&);
         int height(Node<T>*);
         int getBalanceFactor(Node<T>*);
         Node<T>* rotateRight(Node<T>*);
         Node<T>* rotateLeft(Node<T>*);
         Node<T>* balanceTree(Node<T>*);
-        void successionLinePreOrder(Node<T>*);
-        void successionLineInOrder(Node<T>*);
-        void successionLinePostOrder(Node<T>*);
-        void saveToFile(Node<T>*, ofstream&);
-        T findMember(Node<T>*);
-        T findMember(Node<T>*, int);
-        void updateLeaderInFile(const T&, const T&);
     public:
         Tree(Node<T>*);
         void insert(T);
@@ -34,7 +38,6 @@ class Tree{
         void printSuccessionLine(int);
         void assignNewLeader();
         void modifyClanMember(const string&);
-        void saveTreeToFile(const string&);
 };
 
 using namespace std;
@@ -51,32 +54,34 @@ void Tree<T>::insert(T data){
 
 template<class T>
 Node<T>* Tree<T>::insert(Node<T>* root, T data){
-    if(root == nullptr) return new Node<T>(data);
-    if(data < root->getData()) root->setLeft(insert(root->getLeft(), data));
+    if (root == nullptr) return new Node<T>(data);
+    if (data < root->getData()) root->setLeft(insert(root->getLeft(), data));
     else root->setRight(insert(root->getRight(), data));
 
+    // Actualizar la altura del nodo actual
     root->setHeight(1 + max(height(root->getLeft()), height(root->getRight())));
 
+    // Balancear el árbol
     return balanceTree(root);
 }
 
 template<class T>
 void Tree<T>::remove(T data){
-    this->root = remove(this->root, data);
+    if (this->root == nullptr) return;
+    else this->root = remove(this->root, data);
 }
 
 template<class T>
 Node<T>* Tree<T>::remove(Node<T>* root, T data){
-    if(root == nullptr) return root;
-    if(data < root->getData()) root->setLeft(remove(root->getLeft(), data));
-    else if(data > root->getData()) root->setRight(remove(root->getRight(), data));
+    if (root == nullptr) return root;
+    if (data < root->getData()) root->setLeft(remove(root->getLeft(), data));
+    else if (data > root->getData()) root->setRight(remove(root->getRight(), data));
     else {
-        if(root->getLeft() == nullptr) {
+        if (root->getLeft() == nullptr) {
             Node<T>* temp = root->getRight();
             delete root;
             return temp;
-        }
-        else if(root->getRight() == nullptr) {
+        } else if (root->getRight() == nullptr) {
             Node<T>* temp = root->getLeft();
             delete root;
             return temp;
@@ -88,8 +93,10 @@ Node<T>* Tree<T>::remove(Node<T>* root, T data){
 
     if (root == nullptr) return root;
 
+    // Actualizar la altura del nodo actual
     root->setHeight(1 + max(height(root->getLeft()), height(root->getRight())));
 
+    // Balancear el árbol
     return balanceTree(root);
 }
 
@@ -156,69 +163,6 @@ template<class T>
 void Tree<T>::update(T oldData, T newData) {
     this->root = remove(this->root, oldData);
     this->root = insert(this->root, newData);
-}
-
-template<class T>
-int Tree<T>::height(Node<T>* node) {
-    if (node == nullptr) return 0;
-    return node->getHeight();
-}
-
-template<class T>
-int Tree<T>::getBalanceFactor(Node<T>* node) {
-    if (node == nullptr) return 0;
-    return height(node->getLeft()) - height(node->getRight());
-}
-
-template<class T>
-Node<T>* Tree<T>::rotateRight(Node<T>* node) {
-    Node<T>* subtreeRoot = node->getLeft();
-    Node<T>* rightChild = subtreeRoot->getRight();
-
-    subtreeRoot->setRight(node);
-    node->setLeft(rightChild);
-
-    node->setHeight(max(height(node->getLeft()), height(node->getRight())) + 1);
-    subtreeRoot->setHeight(max(height(subtreeRoot->getLeft()), height(subtreeRoot->getRight())) + 1);
-
-    return subtreeRoot;
-}
-
-template<class T>
-Node<T>* Tree<T>::rotateLeft(Node<T>* node) {
-    Node<T>* subtreeRoot = node->getRight();
-    Node<T>* leftChild = subtreeRoot->getLeft();
-
-    subtreeRoot->setLeft(node);
-    node->setRight(leftChild);
-
-    node->setHeight(max(height(node->getLeft()), height(node->getRight())) + 1);
-    subtreeRoot->setHeight(max(height(subtreeRoot->getLeft()), height(subtreeRoot->getRight())) + 1);
-
-    return subtreeRoot;
-}
-
-template<class T>
-Node<T>* Tree<T>::balanceTree(Node<T>* node) {
-    int balanceFactor = getBalanceFactor(node);
-
-    if (balanceFactor > 1 && getBalanceFactor(node->getLeft()) >= 0)
-        return rotateRight(node);
-
-    if (balanceFactor > 1 && getBalanceFactor(node->getLeft()) < 0) {
-        node->setLeft(rotateLeft(node->getLeft()));
-        return rotateRight(node);
-    }
-
-    if (balanceFactor < -1 && getBalanceFactor(node->getRight()) <= 0)
-        return rotateLeft(node);
-
-    if (balanceFactor < -1 && getBalanceFactor(node->getRight()) > 0) {
-        node->setRight(rotateRight(node->getRight()));
-        return rotateLeft(node);
-    }
-
-    return node;
 }
 
 template<class T>
@@ -295,8 +239,8 @@ void Tree<T>::assignNewLeader() {
     if (this->root == nullptr) return;
 
     T currentLeader = this->root->getData();
-    if (currentLeader.isDead || currentLeader.age >= 70) {
-        T newLeader = findMember(this->root);
+    if (currentLeader.isDead || currentLeader.age >= 70 || currentLeader.isChief == 0) {
+        T newLeader = findNewLeader(this->root, currentLeader);
         if (newLeader.id != 0) {
             cout << "Nuevo Lider Asignado: ID " << newLeader.id 
                  << ", Nombre: " << newLeader.name 
@@ -306,87 +250,103 @@ void Tree<T>::assignNewLeader() {
             newLeader.isChief = 1;
 
             update(currentLeader, newLeader);
-            updateLeaderInFile(currentLeader, newLeader);
+
+            // Actualizar solo la línea correspondiente en el archivo
+            updateFile("bin/data.csv", currentLeader);
+            updateFile("bin/data.csv", newLeader);
         } else {
             cout << "No se ha encontrado un nuevo lider para asignar." << endl;
         }
-    } else if (currentLeader.isChief && currentLeader.isDead) {
-        currentLeader.isChief = 0;
-        updateLeaderInFile(currentLeader, currentLeader);
     }
 }
 
 template<class T>
-void Tree<T>::updateLeaderInFile(const T& oldLeader, const T& newLeader) {
-    const string filePath = "bin/data.csv";
-    ifstream file(filePath);
-    if (!file.is_open()) {
-        cerr << "Error abriendo archivo: " << filePath << endl;
-        return;
-    }
-
-    string line, updatedContent;
-    getline(file, line);
-    updatedContent += line + "\n";
-
-    while (getline(file, line)) {
-        stringstream ss(line);
-        string id;
-        getline(ss, id, ',');
-
-        if (stoi(id) == oldLeader.id) {
-            line = to_string(oldLeader.id) + ", " + oldLeader.name + ", " + oldLeader.lastName + ", " +
-                   oldLeader.gender + ", " + to_string(oldLeader.age) + ", " + to_string(oldLeader.idFather) + ", " +
-                   to_string(oldLeader.isDead) + ", " + to_string(oldLeader.wasChief) + ", 0";
-        } else if (stoi(id) == newLeader.id) {
-            line = to_string(newLeader.id) + ", " + newLeader.name + ", " + newLeader.lastName + ", " +
-                   newLeader.gender + ", " + to_string(newLeader.age) + ", " + to_string(newLeader.idFather) + ", " +
-                   to_string(newLeader.isDead) + ", " + to_string(newLeader.wasChief) + ", 1";
-        }
-
-        updatedContent += line + "\n";
-    }
-
-    file.close();
-
-    ofstream outFile(filePath);
-    if (!outFile.is_open()) {
-        cerr << "Error de escritura: " << filePath << endl;
-        return;
-    }
-
-    outFile << updatedContent;
-    outFile.close();
-}
-
-template<class T>
-T Tree<T>::findMember(Node<T>* node) {
+T Tree<T>::findNewLeader(Node<T>* node, const T& currentLeader) {
     if (node == nullptr) return T();
 
+    // Check for the first living male child
     Node<T>* left = node->getLeft();
     Node<T>* right = node->getRight();
 
-    if (left != nullptr && !left->getData().isDead && left->getData().gender == 'H') {
+    if (left != nullptr && left->getData().idFather == currentLeader.id && 
+        !left->getData().isDead && left->getData().gender == 'H') {
         return left->getData();
     }
-    if (right != nullptr && !right->getData().isDead && right->getData().gender == 'H') {
+    if (right != nullptr && right->getData().idFather == currentLeader.id && 
+        !right->getData().isDead && right->getData().gender == 'H') {
         return right->getData();
     }
 
-    T leftResult = findMember(left);
+    // Check for the first living female child if no male child is found
+    if (left != nullptr && left->getData().idFather == currentLeader.id && 
+        !left->getData().isDead && left->getData().gender == 'M') {
+        T maleDescendant = findNewLeader(left, left->getData());
+        if (maleDescendant.id != 0) return maleDescendant;
+    }
+    if (right != nullptr && right->getData().idFather == currentLeader.id && 
+        !right->getData().isDead && right->getData().gender == 'M') {
+        T maleDescendant = findNewLeader(right, right->getData());
+        if (maleDescendant.id != 0) return maleDescendant;
+    }
+
+    // Check siblings
+    if (currentLeader.idFather != 0) {
+        T sibling = findSibling(this->root, currentLeader);
+        if (sibling.id != 0) return sibling;
+    }
+
+    // Check uncles/aunts
+    if (currentLeader.idFather != 0) {
+        T father = findMember(this->root, currentLeader.idFather);
+        if (father.id != 0 && father.idFather != 0) {
+            T uncleOrAunt = findSibling(this->root, father);
+            if (uncleOrAunt.id != 0) return uncleOrAunt;
+        }
+    }
+
+    // Check ancestors with two children
+    T ancestor = findAncestorWithTwoChildren(this->root, currentLeader);
+    if (ancestor.id != 0) {
+        T maleDescendant = findNewLeader(this->root, ancestor);
+        if (maleDescendant.id != 0) return maleDescendant;
+    }
+
+    return T(); // No leader found
+}
+
+template<class T>
+T Tree<T>::findSibling(Node<T>* node, const T& member) {
+    if (node == nullptr) return T();
+
+    // Check if the left or right child is a sibling
+    if (node->getLeft() != nullptr && node->getLeft()->getData().idFather == member.idFather &&
+        node->getLeft()->getData().id != member.id && !node->getLeft()->getData().isDead) {
+        return node->getLeft()->getData();
+    }
+    if (node->getRight() != nullptr && node->getRight()->getData().idFather == member.idFather &&
+        node->getRight()->getData().id != member.id && !node->getRight()->getData().isDead) {
+        return node->getRight()->getData();
+    }
+
+    // Recursively check left and right subtrees
+    T leftResult = findSibling(node->getLeft(), member);
     if (leftResult.id != 0) return leftResult;
 
-    T rightResult = findMember(right);
-    if (rightResult.id != 0) return rightResult;
+    return findSibling(node->getRight(), member);
+}
 
-    if (left != nullptr && !left->getData().isDead && left->getData().gender == 'M') {
-        return left->getData();
-    }
-    if (right != nullptr && !right->getData().isDead && right->getData().gender == 'M') {
-        return right->getData();
+template<class T>
+T Tree<T>::findAncestorWithTwoChildren(Node<T>* node, const T& member) {
+    if (node == nullptr) return T();
+
+    if (node->getLeft() != nullptr && node->getRight() != nullptr) {
+        return node->getData();
     }
 
-    return T();
+    T leftResult = findAncestorWithTwoChildren(node->getLeft(), member);
+    if (leftResult.id != 0) return leftResult;
+
+    return findAncestorWithTwoChildren(node->getRight(), member);
 }
 
 template<class T>
@@ -403,6 +363,21 @@ T Tree<T>::findMember(Node<T>* node, int id) {
     return findMember(node->getRight(), id);
 }
 
+template<class T>
+T Tree<T>::findMember(Node<T>* node) {
+    if (node == nullptr) return T();
+
+    if (!node->getData().isDead) {
+        return node->getData();
+    }
+
+    T leftResult = findMember(node->getLeft());
+    if (leftResult.id != 0) return leftResult;
+
+    return findMember(node->getRight());
+}
+
+// Ensure the gender is preserved when modifying or searching for a member
 template<class T>
 void Tree<T>::modifyClanMember(const string& filePath) {
     int id;
@@ -465,6 +440,10 @@ void Tree<T>::modifyClanMember(const string& filePath) {
             case 3:
                 cout << "Ingrese nuevo genero (H/M): ";
                 cin >> newMember.gender;
+                if (newMember.gender != 'H' && newMember.gender != 'M') {
+                    cout << "Genero invalido. Debe ser 'H' o 'M'.\n";
+                    newMember.gender = oldMember.gender; // Revertir al valor anterior
+                }
                 displayMemberInfo(newMember);
                 break;
             case 4:
@@ -476,10 +455,7 @@ void Tree<T>::modifyClanMember(const string& filePath) {
                     cin >> confirm;
                     if (confirm == 'Y' || confirm == 'y') {
                         newMember.isChief = 0;
-                        update(oldMember, newMember);
-                        updateLeaderInFile(oldMember, newMember);
-                        assignNewLeader();
-                        cout << "El lider actual ha sido removido debido a su edad y se ha asignado un nuevo lider.\n";
+                        cout << "El lider actual sera removido debido a su edad y se asignara un nuevo lider.\n";
                     } else if (confirm == 'N' || confirm == 'n') {
                         cout << "Operacion cancelada.\n";
                         newMember.age = oldMember.age;
@@ -498,9 +474,6 @@ void Tree<T>::modifyClanMember(const string& filePath) {
                     if (confirm == 'Y' || confirm == 'y') {
                         newMember.isDead = 1;
                         newMember.isChief = 0;
-                        update(oldMember, newMember);
-                        updateLeaderInFile(oldMember, newMember);
-                        assignNewLeader();
                         cout << "El lider actual ha sido marcado como muerto y se ha asignado un nuevo lider.\n";
                     } else if (confirm == 'N' || confirm == 'n') {
                         cout << "Operacion cancelada.\n";
@@ -531,74 +504,141 @@ void Tree<T>::modifyClanMember(const string& filePath) {
         }
     } while (choice != 0);
 
+    // Actualizar el nodo en el árbol
     update(oldMember, newMember);
 
-    ifstream file(filePath);
-    if (!file.is_open()) {
-        cerr << "Error abriendo archivo: " << filePath << endl;
-        return;
-    }
-
-    string line, updatedContent;
-    getline(file, line);
-    updatedContent += line + "\n";
-
-    while (getline(file, line)) {
-        stringstream ss(line);
-        string idStr;
-        getline(ss, idStr, ',');
-
-        if (stoi(idStr) == oldMember.id) {
-            line = to_string(newMember.id) + ", " + newMember.name + ", " + newMember.lastName + ", " +
-                   newMember.gender + ", " + to_string(newMember.age) + ", " + to_string(newMember.idFather) + ", " +
-                   to_string(newMember.isDead) + ", " + to_string(newMember.wasChief) + ", " +
-                   to_string(newMember.isChief);
-        }
-
-        updatedContent += line + "\n";
-    }
-
-    file.close();
-
-    ofstream outFile(filePath);
-    if (!outFile.is_open()) {
-        cerr << "Error de escritura: " << filePath << endl;
-        return;
-    }
-
-    outFile << updatedContent;
-    outFile.close();
+    // Actualizar solo la línea correspondiente en el archivo
+    updateFile(filePath, newMember);
 
     cout << "Datos del miembro actualizados correctamente." << endl;
+    assignNewLeader();
 }
 
 template<class T>
-void Tree<T>::saveToFile(Node<T>* node, ofstream& outFile) {
-    if (node == nullptr) return;
+void Tree<T>::updateFile(const string& filePath, const T& updatedNode) {
+    ifstream inFile(filePath);
+    if (!inFile.is_open()) {
+        cerr << "Error abriendo archivo para lectura: " << filePath << endl;
+        return;
+    }
 
-    saveToFile(node->getLeft(), outFile);
+    stringstream buffer;
+    string line;
+    bool updated = false;
 
-    T data = node->getData();
-    outFile << data.id << ", " << data.name << ", " << data.lastName << ", " 
-            << data.gender << ", " << data.age << ", " << data.idFather << ", " 
-            << data.isDead << ", " << data.wasChief << ", " << data.isChief << "\n";
+    // Leer y modificar solo la línea correspondiente
+    getline(inFile, line); // Leer encabezado
+    buffer << line << "\n"; // Mantener encabezado
 
-    saveToFile(node->getRight(), outFile);
-}
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        string id;
+        getline(ss, id, ',');
 
-template<class T>
-void Tree<T>::saveTreeToFile(const string& filePath) {
-    ofstream outFile(filePath);
+        if (stoi(id) == updatedNode.id) {
+            // Sobrescribir la línea con los datos actualizados
+            buffer << updatedNode.id << "," << updatedNode.name << "," << updatedNode.lastName << ","
+                   << updatedNode.gender << "," << updatedNode.age << "," << updatedNode.idFather << ","
+                   << updatedNode.isDead << "," << updatedNode.wasChief << "," << updatedNode.isChief << "\n";
+            updated = true;
+        } else {
+            // Mantener las líneas no modificadas
+            buffer << line << "\n";
+        }
+    }
+
+    inFile.close();
+
+    if (!updated) {
+        cerr << "Error: No se encontró el nodo con ID " << updatedNode.id << " en el archivo." << endl;
+        return;
+    }
+
+    ofstream outFile(filePath, ios::trunc);
     if (!outFile.is_open()) {
         cerr << "Error abriendo archivo para escritura: " << filePath << endl;
         return;
     }
 
-    outFile << "id, name, last_name, gender, age, id_father, is_dead, was_chief, is_chief\n";
-
-    saveToFile(this->root, outFile);
-
+    outFile << buffer.str();
     outFile.close();
-    cout << "Datos guardados correctamente en " << filePath << endl;
 }
 
+template<class T>
+void Tree<T>::saveNode(Node<T>* node, ofstream& outFile) {
+    if (node == nullptr) return;
+
+    // Recorrer el árbol en orden (InOrder)
+    saveNode(node->getLeft(), outFile);
+
+    // Escribir los datos del nodo actual
+    T data = node->getData();
+    outFile << data.id << "," << data.name << "," << data.lastName << ","
+            << data.gender << "," << data.age << "," << data.idFather << ","
+            << data.isDead << "," << data.wasChief << "," << data.isChief << "\n";
+
+    saveNode(node->getRight(), outFile);
+}
+
+template<class T>
+int Tree<T>::height(Node<T>* node) {
+    if (node == nullptr) return 0;
+    return node->getHeight();
+}
+
+template<class T>
+int Tree<T>::getBalanceFactor(Node<T>* node) {
+    if (node == nullptr) return 0;
+    return height(node->getLeft()) - height(node->getRight());
+}
+
+template<class T>
+Node<T>* Tree<T>::rotateRight(Node<T>* node) {
+    Node<T>* subtreeRoot = node->getLeft();
+    Node<T>* rightChild = subtreeRoot->getRight();
+
+    subtreeRoot->setRight(node);
+    node->setLeft(rightChild);
+
+    node->setHeight(max(height(node->getLeft()), height(node->getRight())) + 1);
+    subtreeRoot->setHeight(max(height(subtreeRoot->getLeft()), height(subtreeRoot->getRight())) + 1);
+
+    return subtreeRoot;
+}
+
+template<class T>
+Node<T>* Tree<T>::rotateLeft(Node<T>* node) {
+    Node<T>* subtreeRoot = node->getRight();
+    Node<T>* leftChild = subtreeRoot->getLeft();
+
+    subtreeRoot->setLeft(node);
+    node->setRight(leftChild);
+
+    node->setHeight(max(height(node->getLeft()), height(node->getRight())) + 1);
+    subtreeRoot->setHeight(max(height(subtreeRoot->getLeft()), height(subtreeRoot->getRight())) + 1);
+
+    return subtreeRoot;
+}
+
+template<class T>
+Node<T>* Tree<T>::balanceTree(Node<T>* node) {
+    int balanceFactor = getBalanceFactor(node);
+
+    if (balanceFactor > 1 && getBalanceFactor(node->getLeft()) >= 0)
+        return rotateRight(node);
+
+    if (balanceFactor > 1 && getBalanceFactor(node->getLeft()) < 0) {
+        node->setLeft(rotateLeft(node->getLeft()));
+        return rotateRight(node);
+    }
+
+    if (balanceFactor < -1 && getBalanceFactor(node->getRight()) <= 0)
+        return rotateLeft(node);
+
+    if (balanceFactor < -1 && getBalanceFactor(node->getRight()) > 0) {
+        node->setRight(rotateRight(node->getRight()));
+        return rotateLeft(node);
+    }
+
+    return node;
+}
