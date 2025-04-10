@@ -455,7 +455,6 @@ void Tree<T>::modifyClanMember(const string& filePath) {
                     cin >> confirm;
                     if (confirm == 'Y' || confirm == 'y') {
                         newMember.isChief = 0;
-                        assignNewLeader();
                         cout << "El lider actual sera removido debido a su edad y se asignara un nuevo lider.\n";
                     } else if (confirm == 'N' || confirm == 'n') {
                         cout << "Operacion cancelada.\n";
@@ -475,7 +474,6 @@ void Tree<T>::modifyClanMember(const string& filePath) {
                     if (confirm == 'Y' || confirm == 'y') {
                         newMember.isDead = 1;
                         newMember.isChief = 0;
-                        assignNewLeader();
                         cout << "El lider actual ha sido marcado como muerto y se ha asignado un nuevo lider.\n";
                     } else if (confirm == 'N' || confirm == 'n') {
                         cout << "Operacion cancelada.\n";
@@ -513,6 +511,7 @@ void Tree<T>::modifyClanMember(const string& filePath) {
     updateFile(filePath, newMember);
 
     cout << "Datos del miembro actualizados correctamente." << endl;
+    assignNewLeader();
 }
 
 template<class T>
